@@ -1,4 +1,6 @@
 CREATE TYPE subreddit AS ENUM ('ethtrader', 'ethereum');
+ALTER TYPE subreddit ADD VALUE 'ethdev';
+ALTER TYPE subreddit ADD VALUE 'ethermining';
 
 CREATE TABLE IF NOT EXISTS content (
   id SERIAL PRIMARY KEY,
@@ -7,18 +9,29 @@ CREATE TABLE IF NOT EXISTS content (
   author VARCHAR,
   subreddit subreddit NOT NULL,
   reddit_created_utc TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-  score integer NOT NULL
+  score integer NOT NULL,
+  ups integer,
+  downs integer
 );
+
+-- ALTER TABLE content ADD COLUMN ups integer;
+-- ALTER TABLE content ADD COLUMN downs integer;
 
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   username VARCHAR NOT NULL UNIQUE,
-  collected BOOLEAN DEFAULT false
+  collected BOOLEAN DEFAULT false,
+  joined TIMESTAMP WITHOUT TIME ZONE
 );
 
+-- ALTER TABLE users ADD COLUMN joined TIMESTAMP WITHOUT TIME ZONE;
+
 CREATE TABLE IF NOT EXISTS posts (
+  is_self BOOLEAN,
   collected BOOLEAN DEFAULT false
 ) INHERITS (content);
+
+-- ALTER TABLE posts ADD COLUMN is_self BOOLEAN;
 
 ALTER TABLE posts ADD PRIMARY KEY (id);
 ALTER TABLE posts ADD CONSTRAINT unique_reddit_post UNIQUE (reddit_id);

@@ -3,7 +3,7 @@ import praw, prawcore
 import json
 from datetime import datetime
 
-subreddit = 'ethtrader'
+subreddits = ["ethtrader", "ethereum", "ethdev", "ethermining"]
 
 conn_string = "host='localhost' dbname='reddit' user='postgres' password=''"
 conn = psycopg2.connect(conn_string)
@@ -12,10 +12,10 @@ cursor = conn.cursor()
 reddit = praw.Reddit()
 
 def save_post(data):
-    cursor.execute("INSERT INTO posts (reddit_id, author, subreddit, reddit_created_utc, score, collected) VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (reddit_id) DO NOTHING", data)
+    cursor.execute("INSERT INTO posts (reddit_id, author, subreddit, reddit_created_utc, score, ups, downs, is_self, collected) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT (reddit_id) DO NOTHING", data)
 
 def save_comment(data):
-    cursor.execute("INSERT INTO comments (reddit_id, author, subreddit, reddit_created_utc, score, post_id) VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (reddit_id) DO NOTHING", data)
+    cursor.execute("INSERT INTO comments (reddit_id, author, subreddit, reddit_created_utc, score, ups, downs, post_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT (reddit_id) DO NOTHING", data)
 
 def save_user(data):
     cursor.execute("INSERT INTO users (username) VALUES (%s) ON CONFLICT (username) DO NOTHING", data)
@@ -27,9 +27,9 @@ def collect_post(post, just_comments=False):
     for comment in post.comments.list():
         if comment.author:
             save_user((comment.author.name,))
-        save_comment((comment.id, comment.author.name if comment.author is not None else None, comment.subreddit.display_name, datetime.fromtimestamp(comment.created_utc), comment.score, comment.submission.id))
+        save_comment((comment.id, comment.author.name if comment.author is not None else None, str.lower(comment.subreddit.display_name), datetime.fromtimestamp(comment.created_utc), comment.score, comment.score, comment.ups, comment.submission.id))
     if just_comments is False:
-        save_post((post.id, post.author.name if post.author is not None else None, post.subreddit.display_name, datetime.fromtimestamp(post.created_utc), post.score, True))
+        save_post((post.id, post.author.name if post.author is not None else None, str.lower(post.subreddit.display_name), datetime.fromtimestamp(post.created_utc), post.score, post.ups, post.downs, post.is_self, True))
     else:
         cursor.execute("UPDATE posts SET collected = true WHERE reddit_id = %s", (post.id,))
     conn.commit()
@@ -38,11 +38,11 @@ def collect_post(post, just_comments=False):
 def collect_user(username):
     redditor = reddit.redditor(username)
     for post in redditor.submissions.top(limit=None):
-        if post.subreddit == "ethtrader" or post.subreddit == "ethereum":
-            save_post((post.id, post.author.name if post.author is not None else None, post.subreddit.display_name, datetime.fromtimestamp(post.created_utc), post.score, False))
+        if post.subreddit in subreddits:
+            save_post((post.id, post.author.name if post.author is not None else None, str.lower(post.subreddit.display_name), datetime.fromtimestamp(post.created_utc), post.score, post.ups, post.downs, post.is_self, False))
     for comment in redditor.comments.top(limit=None):
-        if comment.subreddit == "ethtrader" or comment.subreddit == "ethereum":
-            save_comment((comment.id, comment.author.name if comment.author is not None else None, comment.subreddit.display_name, datetime.fromtimestamp(comment.created_utc), comment.score, comment.submission.id))
+        if comment.subreddit in subreddits:
+            save_comment((comment.id, comment.author.name if comment.author is not None else None, str.lower(comment.subreddit.display_name), datetime.fromtimestamp(comment.created_utc), comment.score, comment.ups, comment.downs, comment.submission.id))
     cursor.execute("UPDATE users SET collected = true WHERE username = %s", (username,))
     conn.commit()
     print("saved: " + username)
@@ -94,10 +94,12 @@ def get_parent_posts():
                 print("failed: " + post_id)
                 raise
 
-# get_top_posts()
-# get_user_karmas()
+# for subreddit in subreddits:
+#     get_top_posts(subreddit)
+
+get_user_karmas()
 get_post_karmas()
-# get_parent_posts()
+get_parent_posts()
 
 
 cursor.close()

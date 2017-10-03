@@ -2,3 +2,4 @@
 backup*
 praw.ini
 out/
+announce*.md
