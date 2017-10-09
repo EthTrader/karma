@@ -43,7 +43,7 @@ def collect_user(username):
     for comment in redditor.comments.top(limit=None):
         if comment.subreddit in subreddits:
             save_comment((comment.id, comment.author.name if comment.author is not None else None, str.lower(comment.subreddit.display_name), datetime.fromtimestamp(comment.created_utc), comment.score, comment.ups, comment.downs, comment.submission.id))
-    cursor.execute("UPDATE users SET collected = true WHERE username = %s", (username,))
+    cursor.execute("UPDATE users SET collected = true, joined = %s WHERE username = %s", (datetime.fromtimestamp(redditor.created_utc) if hasattr(redditor, 'created_utc') else None, username))
     conn.commit()
     print("saved: " + username)
 
@@ -58,7 +58,7 @@ def get_user_karmas():
         try:
             collect_user(username)
         except Exception as err:
-            if err.response.status_code == 403 or err.response.status_code == 404 or err.response.status_code == 500:
+            if hasattr(err, 'response') and (err.response.status_code == 403 or err.response.status_code == 404 or err.response.status_code == 500):
                 cursor.execute("UPDATE users SET collected = true WHERE username = %s", (username,))
                 conn.commit()
                 print("failed " + str(err.response.status_code)+": "+username)

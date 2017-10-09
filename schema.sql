@@ -21,10 +21,18 @@ CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   username VARCHAR NOT NULL UNIQUE,
   collected BOOLEAN DEFAULT false,
-  joined TIMESTAMP WITHOUT TIME ZONE
+  joined TIMESTAMP WITHOUT TIME ZONE,
+  address VARCHAR
 );
 
 -- ALTER TABLE users ADD COLUMN joined TIMESTAMP WITHOUT TIME ZONE;
+-- ALTER TABLE users ADD COLUMN address VARCHAR;
+
+CREATE TABLE IF NOT EXISTS reg_comments (
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  comment_id VARCHAR PRIMARY KEY,
+  replied BOOLEAN DEFAULT false
+);
 
 CREATE TABLE IF NOT EXISTS posts (
   is_self BOOLEAN,
@@ -48,45 +56,93 @@ ALTER TABLE comments ADD CONSTRAINT comment_author_fk FOREIGN KEY (author) REFER
 CREATE INDEX post_created_idx ON posts ( (reddit_created_utc::DATE) );
 CREATE INDEX comment_created_idx ON comments ( (reddit_created_utc::DATE) );
 
-CREATE VIEW content_ethtrader AS SELECT * FROM content WHERE subreddit = 'ethtrader';
-CREATE VIEW content_ethereum AS SELECT * FROM content WHERE subreddit = 'ethereum';
-CREATE VIEW ethtrader_scores AS
-  SELECT author, sum(score) as score
-  FROM content_ethtrader
-  WHERE reddit_created_utc::DATE <= '2017-09-19'
-  GROUP BY author
-  ORDER BY score DESC;
-CREATE VIEW ethereum_scores AS
-  SELECT author, sum(score) as score
-  FROM content_ethereum
-  WHERE reddit_created_utc::DATE <= '2017-09-19'
-  GROUP BY author
-  ORDER BY score DESC;
-
-
-CREATE VIEW posts_ethtrader AS SELECT * FROM posts WHERE subreddit = 'ethtrader';
-CREATE VIEW posts_ethereum AS SELECT * FROM posts WHERE subreddit = 'ethereum';
-CREATE VIEW comments_ethtrader AS SELECT * FROM comments WHERE subreddit = 'ethtrader';
-CREATE VIEW comments_ethereum AS SELECT * FROM comments WHERE subreddit = 'ethereum';
-
-CREATE VIEW scores AS
-  SELECT
-    posts_ethtrader.author,
-    sum(posts_ethtrader.score) as ethtrader_posts_score,
-    sum(comments_ethtrader.score) as ethtrader_comments_score,
-    sum(posts_ethereum.score) as ethereum_posts_score,
-    sum(comments_ethereum.score) as ethereum_comments_score
-  FROM posts_ethtrader
-  FULL OUTER JOIN comments_ethtrader ON (comments_ethtrader.author = posts_ethtrader.author)
-  FULL OUTER JOIN posts_ethereum ON (posts_ethereum.author = posts_ethtrader.author)
-  FULL OUTER JOIN comments_ethereum ON (comments_ethereum.author = posts_ethtrader.author)
-  WHERE
-    posts_ethtrader.reddit_created_utc::DATE <= '2017-09-19'
-  OR
-    comments_ethtrader.reddit_created_utc::DATE <= '2017-09-19'
-  OR
-    posts_ethereum.reddit_created_utc::DATE <= '2017-09-19'
-  OR
-    comments_ethereum.reddit_created_utc::DATE <= '2017-09-19'
-  GROUP BY posts_ethtrader.author
-  ORDER BY ethtrader_posts_score DESC;
+CREATE VIEW content_scores
+AS (
+SELECT reddit_id, author, reddit_created_utc,
+  score as ethereum_posts_score,
+  0 as ethtrader_posts_score,
+  0 as ethdev_posts_score,
+  0 as ethermining_posts_score,
+  0 as ethereum_comments_score,
+  0 as ethtrader_comments_score,
+  0 as ethdev_comments_score,
+  0 as ethermining_comments_score
+FROM posts WHERE subreddit = 'ethereum'
+UNION
+SELECT reddit_id, author, reddit_created_utc,
+  0 as ethereum_posts_score,
+  score as ethtrader_posts_score,
+  0 as ethdev_posts_score,
+  0 as ethermining_posts_score,
+  0 as ethereum_comments_score,
+  0 as ethtrader_comments_score,
+  0 as ethdev_comments_score,
+  0 as ethermining_comments_score
+FROM posts WHERE subreddit = 'ethtrader'
+UNION
+SELECT reddit_id, author, reddit_created_utc,
+  0 as ethereum_posts_score,
+  0 as ethtrader_posts_score,
+  score as ethdev_posts_score,
+  0 as ethermining_posts_score,
+  0 as ethereum_comments_score,
+  0 as ethtrader_comments_score,
+  0 as ethdev_comments_score,
+  0 as ethermining_comments_score
+FROM posts WHERE subreddit = 'ethdev'
+UNION
+SELECT reddit_id, author, reddit_created_utc,
+  0 as ethereum_posts_score,
+  0 as ethtrader_posts_score,
+  0 as ethdev_posts_score,
+  score as ethermining_posts_score,
+  0 as ethereum_comments_score,
+  0 as ethtrader_comments_score,
+  0 as ethdev_comments_score,
+  0 as ethermining_comments_score
+FROM posts WHERE subreddit = 'ethermining'
+UNION
+SELECT reddit_id, author, reddit_created_utc,
+  0 as ethereum_posts_score,
+  0 as ethtrader_posts_score,
+  0 as ethdev_posts_score,
+  0 as ethermining_posts_score,
+  score as ethereum_comments_score,
+  0 as ethtrader_comments_score,
+  0 as ethdev_comments_score,
+  0 as ethermining_comments_score
+FROM comments WHERE subreddit = 'ethereum'
+UNION
+SELECT reddit_id, author, reddit_created_utc,
+  0 as ethereum_posts_score,
+  0 as ethtrader_posts_score,
+  0 as ethdev_posts_score,
+  0 as ethermining_posts_score,
+  0 as ethereum_comments_score,
+  score as ethtrader_comments_score,
+  0 as ethdev_comments_score,
+  0 as ethermining_comments_score
+FROM comments WHERE subreddit = 'ethtrader'
+UNION
+SELECT reddit_id, author, reddit_created_utc,
+  0 as ethereum_posts_score,
+  0 as ethtrader_posts_score,
+  0 as ethdev_posts_score,
+  0 as ethermining_posts_score,
+  0 as ethereum_comments_score,
+  0 as ethtrader_comments_score,
+  score as ethdev_comments_score,
+  0 as ethermining_comments_score
+FROM comments WHERE subreddit = 'ethdev'
+UNION
+SELECT reddit_id, author, reddit_created_utc,
+  0 as ethereum_posts_score,
+  0 as ethtrader_posts_score,
+  0 as ethdev_posts_score,
+  0 as ethermining_posts_score,
+  0 as ethereum_comments_score,
+  0 as ethtrader_comments_score,
+  0 as ethdev_comments_score,
+  score as ethermining_comments_score
+FROM comments WHERE subreddit = 'ethermining'
+);
