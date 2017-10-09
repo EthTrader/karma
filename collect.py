@@ -27,7 +27,7 @@ def collect_post(post, just_comments=False):
     for comment in post.comments.list():
         if comment.author:
             save_user((comment.author.name,))
-        save_comment((comment.id, comment.author.name if comment.author is not None else None, str.lower(comment.subreddit.display_name), datetime.fromtimestamp(comment.created_utc), comment.score, comment.score, comment.ups, comment.submission.id))
+        save_comment((comment.id, comment.author.name if comment.author is not None else None, str.lower(comment.subreddit.display_name), datetime.fromtimestamp(comment.created_utc), comment.score, comment.ups, comment.downs, comment.submission.id))
     if just_comments is False:
         save_post((post.id, post.author.name if post.author is not None else None, str.lower(post.subreddit.display_name), datetime.fromtimestamp(post.created_utc), post.score, post.ups, post.downs, post.is_self, True))
     else:
