@@ -5,7 +5,7 @@ from datetime import datetime
 
 subreddits = ["ethtrader", "ethereum", "ethdev", "ethermining"]
 
-conn_string = "host='localhost' dbname='reddit' user='postgres' password=''"
+conn_string = "host='localhost' dbname='reddit2' user='postgres' password=''"
 conn = psycopg2.connect(conn_string)
 cursor = conn.cursor()
 
@@ -47,7 +47,7 @@ def collect_user(username):
     conn.commit()
     print("saved: " + username)
 
-def get_top_posts():
+def get_top_posts(subreddit):
     for post in reddit.subreddit(subreddit).top(limit=None):
         collect_post(post)
 
@@ -94,8 +94,8 @@ def get_parent_posts():
                 print("failed: " + post_id)
                 raise
 
-# for subreddit in subreddits:
-#     get_top_posts(subreddit)
+for subreddit in subreddits:
+    get_top_posts(subreddit)
 
 get_user_karmas()
 get_post_karmas()
