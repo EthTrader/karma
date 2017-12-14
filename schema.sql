@@ -34,6 +34,12 @@ CREATE TABLE IF NOT EXISTS reg_comments (
   replied BOOLEAN DEFAULT false
 );
 
+CREATE TABLE IF NOT EXISTS reg_inbox (
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  message_id VARCHAR PRIMARY KEY,
+  replied BOOLEAN DEFAULT false
+);
+
 CREATE TABLE IF NOT EXISTS posts (
   is_self BOOLEAN,
   collected BOOLEAN DEFAULT false
