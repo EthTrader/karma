@@ -16,7 +16,7 @@ def save_post(data):
         INSERT INTO posts (reddit_id, author, subreddit, reddit_created_utc, score, ups, downs, is_self, collected)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (reddit_id)
-        SET (score, ups, downs) = (EXCLUDED.score, EXCLUDED.ups, EXCLUDED.downs)
+        DO UPDATE SET (score, ups, downs) = (EXCLUDED.score, EXCLUDED.ups, EXCLUDED.downs)
     """, data)
 
 def save_comment(data):
@@ -24,7 +24,7 @@ def save_comment(data):
         INSERT INTO comments (reddit_id, author, subreddit, reddit_created_utc, score, ups, downs, post_id)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (reddit_id)
-        SET (score, ups, downs) = (EXCLUDED.score, EXCLUDED.ups, EXCLUDED.downs)
+        DO UPDATE SET (score, ups, downs) = (EXCLUDED.score, EXCLUDED.ups, EXCLUDED.downs)
     """, data)
 
 def save_user(data):
