@@ -5,7 +5,7 @@ from datetime import datetime
 
 subreddits = ["ethtrader", "ethereum", "ethdev", "ethermining"]
 
-conn_string = "host='localhost' dbname='reddit2' user='postgres' password=''"
+conn_string = "host='localhost' dbname='reddit' user='postgres' password=''"
 conn = psycopg2.connect(conn_string)
 cursor = conn.cursor()
 
