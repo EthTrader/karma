@@ -12,10 +12,20 @@ cursor = conn.cursor()
 reddit = praw.Reddit()
 
 def save_post(data):
-    cursor.execute("INSERT INTO posts (reddit_id, author, subreddit, reddit_created_utc, score, ups, downs, is_self, collected) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT (reddit_id) DO NOTHING", data)
+    cursor.execute("""
+        INSERT INTO posts (reddit_id, author, subreddit, reddit_created_utc, score, ups, downs, is_self, collected)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT (reddit_id)
+        SET (score, ups, downs) = (EXCLUDED.score, EXCLUDED.ups, EXCLUDED.downs)
+    """, data)
 
 def save_comment(data):
-    cursor.execute("INSERT INTO comments (reddit_id, author, subreddit, reddit_created_utc, score, ups, downs, post_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT (reddit_id) DO NOTHING", data)
+    cursor.execute("""
+        INSERT INTO comments (reddit_id, author, subreddit, reddit_created_utc, score, ups, downs, post_id)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT (reddit_id)
+        SET (score, ups, downs) = (EXCLUDED.score, EXCLUDED.ups, EXCLUDED.downs)
+    """, data)
 
 def save_user(data):
     cursor.execute("INSERT INTO users (username) VALUES (%s) ON CONFLICT (username) DO NOTHING", data)
@@ -29,7 +39,7 @@ def collect_post(post, just_comments=False):
             save_user((comment.author.name,))
         save_comment((comment.id, comment.author.name if comment.author is not None else None, str.lower(comment.subreddit.display_name), datetime.fromtimestamp(comment.created_utc), comment.score, comment.ups, comment.downs, comment.submission.id))
     if just_comments is False:
-        save_post((post.id, post.author.name if post.author is not None else None, str.lower(post.subreddit.display_name), datetime.fromtimestamp(post.created_utc), post.score, post.ups, post.downs, post.is_self, True))
+        save_post((post.id, post.author.name if post.author is not None else None, str.lower(post.subreddit.display_name), datetime.fromtimestamp(post.created_utc), post.score, post.ups, post.downs, post.is_self, True, post.score))
     else:
         cursor.execute("UPDATE posts SET collected = true WHERE reddit_id = %s", (post.id,))
     conn.commit()
