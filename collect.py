@@ -115,7 +115,7 @@ while True:
     get_parent_posts()
     print("pausing after fetch: " + count)
     sleep(10*60)
-    count++
+    count += 1
 
 cursor.close()
 conn.close()
