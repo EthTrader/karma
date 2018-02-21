@@ -2,6 +2,7 @@ import psycopg2
 import praw, prawcore
 import json
 from datetime import datetime
+from time import sleep
 
 subreddits = ["ethtrader", "ethereum", "ethdev", "ethermining"]
 
@@ -45,28 +46,28 @@ def collect_post(post, just_comments=False):
     conn.commit()
     print("saved: " + post.id)
 
-def collect_user(username):
+def collect_user(username, full):
+    print("saving: " + username)
     redditor = reddit.redditor(username)
-    for post in redditor.submissions.top(limit=None):
+    for post in redditor.submissions.top(limit=None) if full else redditor.submissions.top(time_filter="month", limit=None):
         if post.subreddit in subreddits:
             save_post((post.id, post.author.name if post.author is not None else None, str.lower(post.subreddit.display_name), datetime.fromtimestamp(post.created_utc), post.score, post.ups, post.downs, post.is_self, False))
-    for comment in redditor.comments.top(limit=None):
+    for comment in redditor.comments.top(limit=None) if full else redditor.comments.top(time_filter="month", limit=None):
         if comment.subreddit in subreddits:
             save_comment((comment.id, comment.author.name if comment.author is not None else None, str.lower(comment.subreddit.display_name), datetime.fromtimestamp(comment.created_utc), comment.score, comment.ups, comment.downs, comment.submission.id))
     cursor.execute("UPDATE users SET collected = true, joined = %s WHERE username = %s", (datetime.fromtimestamp(redditor.created_utc) if hasattr(redditor, 'created_utc') else None, username))
     conn.commit()
-    print("saved: " + username)
 
 def get_top_posts(subreddit):
     for post in reddit.subreddit(subreddit).top(limit=None):
         collect_post(post)
 
-def get_user_karmas():
+def get_user_karmas(first):
     cursor.execute("SELECT username FROM users WHERE collected = false ORDER BY id ASC")
     users = cursor.fetchall()
     for username in [i[0] for i in users]:
         try:
-            collect_user(username)
+            collect_user(username, first)
         except Exception as err:
             if hasattr(err, 'response') and (err.response.status_code == 403 or err.response.status_code == 404 or err.response.status_code == 500):
                 cursor.execute("UPDATE users SET collected = true WHERE username = %s", (username,))
@@ -104,13 +105,17 @@ def get_parent_posts():
                 print("failed: " + post_id)
                 raise
 
-for subreddit in subreddits:
-    get_top_posts(subreddit)
+#for subreddit in subreddits:
+#    get_top_posts(subreddit)
+count = 0
 
-get_user_karmas()
-get_post_karmas()
-get_parent_posts()
-
+while True:
+    get_user_karmas(count == 0)
+    get_post_karmas()
+    get_parent_posts()
+    print("pausing after fetch: " + count)
+    sleep(10*60)
+    count++
 
 cursor.close()
 conn.close()
