@@ -119,7 +119,7 @@ while True:
     num_users = get_user_karmas(count == 0)
     get_post_karmas()
     get_parent_posts()
-    if count > 0 or num_users == 0
+    if count > 0 or num_users == 0:
         print("pausing after fetch: " + str(count))
         sleep(10*60)
         count += 1
