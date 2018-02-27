@@ -95,7 +95,8 @@ def get_post_karmas():
                 raise
 
 def get_parent_posts():
-    cursor.execute("SELECT DISTINCT(post_id) FROM comments WHERE post_id NOT IN (SELECT reddit_id FROM posts)")
+    cursor.execute("SELECT DISTINCT(post_id) FROM comments LEFT JOIN posts ON posts.reddit_id = comments.post_id WHERE posts.reddit_id IS NULL")
+    # cursor.execute("SELECT DISTINCT(post_id) FROM comments WHERE post_id NOT IN (SELECT reddit_id FROM posts)")
     posts = cursor.fetchall()
     for post_id in [i[0] for i in posts]:
         try:
