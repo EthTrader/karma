@@ -61,6 +61,7 @@ ALTER TABLE comments ADD CONSTRAINT comment_author_fk FOREIGN KEY (author) REFER
 
 CREATE INDEX post_created_idx ON posts ( (reddit_created_utc::DATE) );
 CREATE INDEX comment_created_idx ON comments ( (reddit_created_utc::DATE) );
+CREATE INDEX comment_post_id ON comments (post_id);
 
 CREATE VIEW content_scores
 AS (
