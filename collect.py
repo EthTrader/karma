@@ -68,6 +68,7 @@ def get_user_karmas(first):
     else:
         cursor.execute("SELECT username FROM users ORDER BY id ASC")
     users = cursor.fetchall()
+
     for username in [i[0] for i in users]:
         try:
             collect_user(username, first)
@@ -79,6 +80,7 @@ def get_user_karmas(first):
             else:
                 print("failed: " + username)
                 raise
+    return len(users)
 
 def get_post_karmas():
     cursor.execute("SELECT reddit_id FROM posts WHERE collected = false")
@@ -114,12 +116,13 @@ def get_parent_posts():
 count = 0
 
 while True:
-    get_user_karmas(count == 0)
+    num_users = get_user_karmas(count == 0)
     get_post_karmas()
     get_parent_posts()
-    print("pausing after fetch: " + count)
-    sleep(10*60)
-    count += 1
+    if count > 0 or num_users == 0
+        print("pausing after fetch: " + str(count))
+        sleep(10*60)
+        count += 1
 
 cursor.close()
 conn.close()
