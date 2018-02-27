@@ -63,7 +63,10 @@ def get_top_posts(subreddit):
         collect_post(post)
 
 def get_user_karmas(first):
-    cursor.execute("SELECT username FROM users WHERE collected = false ORDER BY id ASC")
+    if first
+        cursor.execute("SELECT username FROM users WHERE collected = false ORDER BY id ASC")
+    else
+        cursor.execute("SELECT username FROM users ORDER BY id ASC")    
     users = cursor.fetchall()
     for username in [i[0] for i in users]:
         try:
