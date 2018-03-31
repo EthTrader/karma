@@ -72,7 +72,8 @@ CREATE TABLE IF NOT EXISTS tips (
   content_type content_type NOT NULL,
   reddit_id VARCHAR NOT NULL,
   token VARCHAR,
-  amount NUMERIC
+  amount NUMERIC,
+  reply_id VARCHAR
 );
 
 CREATE INDEX tips_reddit_id ON tips (reddit_id);
