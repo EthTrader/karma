@@ -62,3 +62,17 @@ ALTER TABLE comments ADD CONSTRAINT comment_author_fk FOREIGN KEY (author) REFER
 CREATE INDEX post_created_idx ON posts ( (reddit_created_utc::DATE) );
 CREATE INDEX comment_created_idx ON comments ( (reddit_created_utc::DATE) );
 CREATE INDEX comment_post_id ON comments (post_id);
+
+CREATE TYPE content_type AS ENUM ('POST', 'COMMENT');
+
+CREATE TABLE IF NOT EXISTS tips (
+  id SERIAL PRIMARY KEY,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  event_id VARCHAR NOT NULL UNIQUE,
+  content_type content_type NOT NULL,
+  reddit_id VARCHAR NOT NULL,
+  token VARCHAR,
+  amount NUMERIC
+);
+
+CREATE INDEX tips_reddit_id ON tips (reddit_id);
