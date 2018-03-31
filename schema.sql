@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS tips (
   reddit_id VARCHAR NOT NULL,
   token VARCHAR,
   amount NUMERIC,
+  from_address VARCHAR NOT NULL,
   reply_id VARCHAR
 );
 
