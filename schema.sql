@@ -86,3 +86,5 @@ CREATE TABLE IF NOT EXISTS flips (
   reddit_id VARCHAR NOT NULL,
   reply_id VARCHAR
 );
+
+CREATE INDEX flips_reddit_id ON flips (reddit_id);
