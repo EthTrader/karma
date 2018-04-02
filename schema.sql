@@ -78,3 +78,11 @@ CREATE TABLE IF NOT EXISTS tips (
 );
 
 CREATE INDEX tips_reddit_id ON tips (reddit_id);
+
+CREATE TABLE IF NOT EXISTS flips (
+  id SERIAL PRIMARY KEY,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  event_id VARCHAR NOT NULL UNIQUE,
+  reddit_id VARCHAR NOT NULL,
+  reply_id VARCHAR
+);
