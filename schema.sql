@@ -84,7 +84,8 @@ CREATE TABLE IF NOT EXISTS flips (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
   event_id VARCHAR NOT NULL UNIQUE,
   reddit_id VARCHAR NOT NULL,
-  reply_id VARCHAR
+  reply_id VARCHAR,
+  remove_at TIMESTAMP WITH TIME ZONE
 );
 
 CREATE INDEX flips_reddit_id ON flips (reddit_id);
