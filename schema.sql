@@ -89,3 +89,8 @@ CREATE TABLE IF NOT EXISTS flips (
 );
 
 CREATE INDEX flips_reddit_id ON flips (reddit_id);
+
+CREATE VIEW current_scores AS SELECT author, sum(score) AS score FROM content GROUP BY author;
+
+-- ALTER TABLE users add column score_2018_04_25 INTEGER;
+-- UPDATE users SET score_2018_04_25 = score FROM current_scores WHERE current_scores.author = users.username;
